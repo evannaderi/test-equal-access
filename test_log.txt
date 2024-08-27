@@ -1,0 +1,2 @@
+Tested Page7Main.html against express_server (http://localhost:3000/check). Output written to test_results/express_server_Page7Main.html_20240827_120843.json. Time taken: 2.01 seconds
+Tested Page7Main.html against lambda_function (http://localhost:3001/check). Output written to test_results/lambda_function_Page7Main.html_20240827_120846.json. Time taken: 5.32 seconds
