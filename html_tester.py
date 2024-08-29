@@ -11,11 +11,18 @@ def test_endpoint(endpoint_name, endpoint_path, html_file, output_dir, log_file)
     with open(html_file, 'r', encoding='utf-8') as file:
         html_content = file.read()
 
+    # Wrap HTML content in JSON
+    payload = json.dumps({"html": html_content})
+
     start_time = time.time()
     try:
-        response = requests.post(endpoint_path, data=html_content, headers={'Content-Type': 'text/html'})
+        response = requests.post(endpoint_path, data=payload, headers={'Content-Type': 'application/json'})
         response.raise_for_status()
-        result = response.json()
+        
+        try:
+            result = response.json()
+        except json.JSONDecodeError:
+            raise ValueError("Response is not valid JSON")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_file = os.path.join(output_dir, f"{endpoint_name}_{filename}_{timestamp}.json")
@@ -25,24 +32,29 @@ def test_endpoint(endpoint_name, endpoint_path, html_file, output_dir, log_file)
         
         end_time = time.time()
         elapsed_time = end_time - start_time
-        with open(log_file, 'a', encoding='utf-8') as log:
-            log.write(f"Tested {filename} against {endpoint_name} ({endpoint_path}). Output written to {output_file}. Time taken: {elapsed_time:.2f} seconds\n")
+        log_message = f"Tested {filename} against {endpoint_name} ({endpoint_path}). Output written to {output_file}. Time taken: {elapsed_time:.2f} seconds"
         
-        print(f"Tested {filename} against {endpoint_name} ({endpoint_path}). Output written to {output_file}. Time taken: {elapsed_time:.2f} seconds")
+        with open(log_file, 'a', encoding='utf-8') as log:
+            log.write(log_message + "\n")
+        
+        print(log_message)
         return True
-    except requests.RequestException as e:
+    except (requests.RequestException, ValueError) as e:
         end_time = time.time()
         elapsed_time = end_time - start_time
-        with open(log_file, 'a', encoding='utf-8') as log:
-            log.write(f"Error testing {filename} against {endpoint_name} ({endpoint_path}): {str(e)}. Time taken: {elapsed_time:.2f} seconds\n")
+        error_message = f"Error testing {filename} against {endpoint_name} ({endpoint_path}): {str(e)}. Time taken: {elapsed_time:.2f} seconds"
         
-        print(f"Error testing {filename} against {endpoint_name} ({endpoint_path}): {str(e)}. Time taken: {elapsed_time:.2f} seconds")
+        with open(log_file, 'a', encoding='utf-8') as log:
+            log.write(error_message + "\n")
+        
+        print(error_message)
         return False
 
 def main():
     endpoints = {
-        "express_server": "http://localhost:3000/check",  # Bed's express server
+        "bed_express_server": "http://localhost:3000/check",  # Bed's express server
         "lambda_function": "http://localhost:3001/check",  # Lambda function
+        "ea2_express_server": "http://localhost:3002/check",  # EA2's express server
     }
     html_dir = "html_files"  # Directory containing HTML files
     output_dir = "test_results"  # Directory to store output JSON files
