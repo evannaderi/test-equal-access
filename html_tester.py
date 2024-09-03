@@ -20,9 +20,18 @@ def test_endpoint(endpoint_name, endpoint_path, html_file, output_dir, log_file)
         response.raise_for_status()
         
         try:
-            result = response.json()
+            result: any = response.json()
         except json.JSONDecodeError:
-            raise ValueError("Response is not valid JSON")
+                print("Response is not valid JSON")
+                print(f"Type of response: {type(response)}")
+                print("Response content:")
+                print(response.content)
+                print("Response text (if available):")
+                print(response.text)                  
+                print("Available attributes and methods in the response object:")
+
+
+                raise ValueError("Response is not valid JSON")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_file = os.path.join(output_dir, f"{endpoint_name}_{filename}_{timestamp}.json")
